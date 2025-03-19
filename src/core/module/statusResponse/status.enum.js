@@ -1,0 +1,13 @@
+const STATUS = {
+  GET_SUCCESS: {code: 200, message: '조회에 성공했습니다.'},
+  POST_SUCCESS: {code: 200, message: '작성에 성공하였습니다.'},
+  UPDATE_SUCCESS: {code: 200, message: '수정에 성공하였습니다.'},
+  DELETE_SUCCESS: {code: 200, message: '삭제에 성공하였습니다.'},
+
+  BAD_REQUEST: {code: 400, message: '잘못된 요청 입니다.'},
+  UNAUTHORIZED: {code: 401, message: '권한이 없습니다.'},
+  NO_REGISTERED: {code: 402, message: '가입되지 않은 회원 입니다.'},
+  NOT_FOUND: {code: 404, message: '찾을 수 없는 요청 입니다.'},
+}
+
+export default STATUS
