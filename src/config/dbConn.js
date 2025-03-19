@@ -1,61 +1,111 @@
-import mysql from 'mysql2'
+import mysql from 'mysql2/promise'
 
-const pool = mysql.createPool({
+const config = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
   database: process.env.DB_DATABASE,
   multipleStatements: true,
-})
-
-const executeQuery = (conn, sql, params) => {
-  return new Promise((resolve, reject) => {
-    conn.query(sql, params, (err, data) => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('[SQL]', sql)
-        console.log('[Params]', params)
-      }
-      err ? reject(err) : resolve(data)
-    })
-  })
 }
 
+const pool = mysql.createPool(config)
+
 const dbConn = {
+  // 커넥션을 가져오는 함수
+  getConnection: async () => {
+    try {
+      const conn = await pool.getConnection()  // getConnection()을 Promise로 반환
+      return conn
+    } catch (err) {
+      throw new Error(`Connection error: ${err.message}`)
+    }
+  },
+
+  // SQL 변수 설정 및 실행
   variable: async (val, valParam, sql, sqlParam) => {
-    const conn = await dbConn.get()
+    const conn = await dbConn.getConnection()
     try {
       console.log('Setting variable...')
       await executeQuery(conn, val, valParam)
-      const result = await executeQuery(conn, sql, sqlParam)
-      return result
+      return await executeQuery(conn, sql, sqlParam)
     } catch (err) {
-      console.error('Query Error:', err)
       throw err
     } finally {
-      conn.release()
+      conn.release() // 연결 반환
     }
   },
 
+  // 일반적인 쿼리 실행
   query: async (sql, params) => {
-    const conn = await dbConn.get()
+    const conn = await dbConn.getConnection()
     try {
       return await executeQuery(conn, sql, params)
     } catch (err) {
-      console.error('Query Error:', err)
       throw err
     } finally {
-      conn.release()
+      conn.release() // 연결 반환
     }
   },
 
-  get: () => {
-    return new Promise((resolve, reject) => {
-      pool.getConnection((err, conn) => {
-        err ? reject(err) : resolve(conn)
-      })
-    })
+  // 단일 결과 조회
+  getOne: async (sql, params) => {
+    const conn = await dbConn.getConnection()
+    try {
+      const result = await executeQuery(conn, sql, params)
+      return result[0] // 첫 번째 결과 반환
+    } catch (err) {
+      throw err
+    } finally {
+      conn.release() // 연결 반환
+    }
   },
+
+  // 트랜잭션 처리
+  transaction: async (queries) => {
+    const conn = await dbConn.getConnection()
+
+    try {
+      await conn.beginTransaction()  // 트랜잭션 시작
+      const results = []
+      let lastInsertId = null
+
+      for (const { sql, params, getInsertId, skip } of queries) {
+        if (skip) {
+          results.push({ skipped: true })
+          continue
+        }
+
+        const adjustedParams = getInsertId && lastInsertId
+          ? params.map(param => param === '$INSERT_ID' ? lastInsertId : param)
+          : params
+
+        const result = await executeQuery(conn, sql, adjustedParams)
+        results.push(result)
+
+        if (getInsertId) {
+          lastInsertId = result.insertId
+        }
+      }
+
+      await conn.commit()  // 트랜잭션 커밋
+      return results
+    } catch (err) {
+      await conn.rollback()  // 오류 발생 시 트랜잭션 롤백
+      throw err
+    } finally {
+      conn.release()  // 연결 반환
+    }
+  },
+}
+
+// 쿼리 실행 함수 (Promise 기반)
+const executeQuery = async (conn, sql, params) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[sql]', sql)
+    console.log('[params]', params)
+  }
+  return (await conn.query(sql, params))[0]  // .query()가 이미 Promise를 반환하므로 별도의 Promise 래퍼가 필요 없음
 }
 
 export default dbConn
