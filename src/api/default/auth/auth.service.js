@@ -25,7 +25,6 @@ const AuthService = {
         }
 
         user = await dbConn.getOne(AuthRepository.getBasicUser, [username])
-        console.log(user)
 
         isInvalid = await validateBasicLogin(req, res, user)
         if(isInvalid) return
@@ -38,7 +37,7 @@ const AuthService = {
         ...req.info,
         userId: user.id
       }
-      statusResponse(req, res, STATUS.POST_SUCCESS.code, STATUS.POST_SUCCESS.message, user)
+      statusResponse(req, res, STATUS.LOGIN_SUCCESS.code, STATUS.LOGIN_SUCCESS.message, user)
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
     }
@@ -64,7 +63,7 @@ const AuthService = {
 
       console.log(result[0].insertId)
 
-      statusResponse(req, res, STATUS.POST_SUCCESS.code, STATUS.POST_SUCCESS.message, result)
+      statusResponse(req, res, STATUS.REGISTER_SUCCESS.code, STATUS.REGISTER_SUCCESS.message, result)
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
     }

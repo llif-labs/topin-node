@@ -4,6 +4,9 @@ const STATUS = {
   UPDATE_SUCCESS: {code: 200, message: '수정에 성공하였습니다.'},
   DELETE_SUCCESS: {code: 200, message: '삭제에 성공하였습니다.'},
 
+  LOGIN_SUCCESS: {code: 200, message: '로그인에 성공하였습니다.'},
+  REGISTER_SUCCESS: {code: 200, message: '로그인에 성공하였습니다.'},
+
   EXIST_PROVIDER: {code: 400, message: '이미 가입된 소셜 계정 입니다.'},
   EXIST_USER: {code: 400, message: '이미 존재하는 계정 입니다.'},
   EXIST_EMAIL: {code: 400, message: '이미 가입된 이메일 입니다.'},
