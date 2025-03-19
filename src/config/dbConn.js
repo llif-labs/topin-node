@@ -48,6 +48,18 @@ const dbConn = {
     }
   },
 
+  // 일반적인 쿼리 실행
+  page: async (sql, params, size) => {
+    const conn = await dbConn.getConnection()
+    try {
+      return await executeQuery(conn, sql, [...params, size])
+    } catch (err) {
+      throw err
+    } finally {
+      conn.release() // 연결 반환
+    }
+  },
+
   // 단일 결과 조회
   getOne: async (sql, params) => {
     const conn = await dbConn.getConnection()
