@@ -7,6 +7,7 @@ import {validateBasicLogin, validateSocialLogin, validateUserRegistration} from 
 import EmailSender from '../../../core/module/sendEmail/EmailSender.js'
 import StringUtil from '../../../core/util/stringUtil.js'
 import session from 'express-session'
+import jwt from '../../../core/module/jwt/jwt.js'
 
 const AuthService = {
   login: async (req, res) => {
@@ -33,7 +34,10 @@ const AuthService = {
 
       }
 
+      delete user.password
+
       req.info = {...req.info, userId: user.id}
+      user.token = await jwt.sign(user)
 
       if (user.role > 100) {
         const code = StringUtil.genKey(6)
