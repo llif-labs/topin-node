@@ -4,6 +4,7 @@ import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
 import PassGenerate from '../../../core/module/passGenerate/index.js'
 
+const sessionStore = {}
 
 /**
  * 회원가입 시 중복검증 유틸리티

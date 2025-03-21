@@ -5,6 +5,11 @@ const AuthRepository = {
   getExistUsername: `SELECT id FROM user WHERE username = ?`,
   getExistEmail: `SELECT id FROM user WHERE email = ?`,
 
+  getAdminUser : `SELECT u.id, u.role, u.username, u.password, u.email
+                  FROM user u
+                           LEFT JOIN user_auth_providers uap ON uap.id = u.id
+                  WHERE u.id = ? AND u.role = ? AND u.username = ? AND u.password = ? AND u.email = ?`,
+
   getBasicUser : `SELECT u.id, u.role, u.username, u.password, u.email
                   FROM user u
                            LEFT JOIN user_auth_providers uap ON uap.id = u.id

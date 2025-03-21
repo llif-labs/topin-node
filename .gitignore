@@ -254,7 +254,7 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
-# env
+# .env
 ecosystem.config.cjs
 
 # End of https://www.toptal.com/developers/gitignore/api/node,intellij
