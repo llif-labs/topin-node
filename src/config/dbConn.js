@@ -49,10 +49,12 @@ const dbConn = {
   },
 
   // 일반적인 쿼리 실행
-  page: async (sql, params, size) => {
+  page: async (sql, params, currentPage, size) => {
     const conn = await dbConn.getConnection()
+    const offset = Number((Number(currentPage) - 1 < 0 ? 0 : Number(currentPage) - 1) * Number(size))
+    const limit = Number(size)
     try {
-      return await executeQuery(conn, sql, [...params, size])
+      return await executeQuery(conn, sql, [...params, offset, limit])
     } catch (err) {
       throw err
     } finally {
@@ -82,9 +84,9 @@ const dbConn = {
       const results = []
       let lastInsertId = null
 
-      for (const { sql, params, getInsertId, skip } of queries) {
+      for (const {sql, params, getInsertId, skip} of queries) {
         if (skip) {
-          results.push({ skipped: true })
+          results.push({skipped: true})
           continue
         }
 

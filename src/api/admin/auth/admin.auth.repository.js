@@ -47,7 +47,7 @@ const AdminAuthRepository = {
     sql += ` ORDER BY ${orderBy}`;
 
     // LIMIT 추가
-    sql += ` LIMIT ?`;
+    sql += ` LIMIT ?, ?`;
 
     return { sql, params };
   }

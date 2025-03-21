@@ -4,7 +4,7 @@ import STATUS from '../../../core/module/statusResponse/status.enum.js'
 export const NOT_INVALID = 'not invalid'
 
 export const createAdminAuthCondition = (req, res) => {
-  const {status, lastId} = req.body
+  const {status} = req.body
   const condition = []
 
   if (status !== 'all' && status !== 'active' && status !== 'banned' && status !== 'deactivated') {
@@ -14,10 +14,6 @@ export const createAdminAuthCondition = (req, res) => {
 
   if (status !== 'all') {
     condition.push({sql: 'u.status = ?', params: [status]})
-  }
-
-  if (lastId) {
-    condition.push({sql: 'u.id = ?', params: [lastId]})
   }
 
   return condition

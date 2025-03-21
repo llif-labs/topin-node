@@ -17,18 +17,18 @@ const AdminAuthService = {
     if (condition === NOT_INVALID) return
 
     const {sql, params} = AdminAuthRepository.getUserListSize(condition)
-    const result = await dbConn.query(sql, params)
+    const result = await dbConn.getOne(sql, params)
 
     statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result)
   },
 
   list: async (req, res) => {
-    const {size} = req.body
+    const {currentPage, size} = req.body
     const condition = createAdminAuthCondition(req, res)
     if (condition === NOT_INVALID) return
 
     const {sql, params} = AdminAuthRepository.getUserList(condition)
-    const result = await dbConn.page(sql, params, size)
+    const result = await dbConn.page(sql, params, currentPage, size)
 
     statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result)
   },
