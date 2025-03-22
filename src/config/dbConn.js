@@ -7,6 +7,7 @@ const config = {
   port: process.env.DB_PORT,
   database: process.env.DB_DATABASE,
   multipleStatements: true,
+  timezone: 'Asia/Seoul',
 }
 
 const pool = mysql.createPool(config)

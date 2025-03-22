@@ -6,7 +6,6 @@ import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import {validateBasicLogin, validateSocialLogin, validateUserRegistration} from './auth.util.js'
 import EmailSender from '../../../core/module/sendEmail/EmailSender.js'
 import StringUtil from '../../../core/util/stringUtil.js'
-import session from 'express-session'
 import jwt from '../../../core/module/jwt/jwt.js'
 
 const AuthService = {
@@ -65,7 +64,7 @@ const AuthService = {
     try {
 
       if(verifyCode !== code){
-        // throw new Error(STATUS.NOT_VERIFY_CODE.message)
+        throw new Error(STATUS.NOT_VERIFY_CODE.message)
       }else{
         req.session.destroy()
       }
@@ -92,8 +91,6 @@ const AuthService = {
         },
         {sql: AuthRepository.insertAuthProvider, params: [provider, provider_uid], skip: !provider_uid},
       ])
-
-      console.log(result[0].insertId)
 
       statusResponse(req, res, STATUS.REGISTER_SUCCESS.code, STATUS.REGISTER_SUCCESS.message, result)
     } catch (e) {
