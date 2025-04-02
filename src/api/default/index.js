@@ -1,8 +1,10 @@
 import {Router} from 'express'
 import AuthController from './auth/auth.controller.js'
+import IssueController from './issue/issue.controller.js'
 
 const DefaultRouter = Router()
 
 DefaultRouter.use('/auth', AuthController)
+DefaultRouter.use('/issue', IssueController)
 
 export default DefaultRouter

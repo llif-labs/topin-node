@@ -1,19 +1,22 @@
-import {statusResponse} from '../../../core/module/statusResponse/index.js'
-import STATUS from '../../../core/module/statusResponse/status.enum.js'
-
 export const NOT_INVALID = 'not invalid'
 
 export const createAdminAuthCondition = (req, res) => {
-  const {status} = req.body
+  const {data} = req.body
   const condition = []
 
-  if (status !== 'all' && status !== 'active' && status !== 'banned' && status !== 'deactivated') {
-    statusResponse(req, res, STATUS.BAD_REQUEST.code, STATUS.BAD_REQUEST.message)
-    return NOT_INVALID
-  }
+  console.log(data)
 
-  if (status !== 'all') {
-    condition.push({sql: 'u.status = ?', params: [status]})
+  if (data.length > 0) {
+    data.map((item) => {
+
+      if (item.type === 'searchType' && item.label && item.value) {
+        condition.push({sql: `u.${item.label} LIKE ?`, params: [`%${item.value}%`]})
+      }
+
+      if (item.type === 'status' && item.value !== 'all' && item.value !== '') {
+        condition.push({sql: 'u.status = ?', params: [item.value]})
+      }
+    })
   }
 
   return condition
