@@ -9,6 +9,8 @@ export const AuthMiddleware = async (req, res, next) => {
 
     req.info = {...await AuthUtil.tokenValidation(res, accessToken, refreshToken)}
 
+    if(!req.info.user_id) throw new Error(STATUS.UNAUTHORIZED.code)
+
     next()
   }catch (e) {
     statusResponse(req, res, STATUS.UNAUTHORIZED.code, e.message)
