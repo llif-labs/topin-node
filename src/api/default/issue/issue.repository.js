@@ -12,10 +12,10 @@ export const IssueDefaultRepository = {
       SELECT i.id,
              i.name,
              i.created_at,
-             COUNT(ip.id)                                            as participant_count,
-             SUM(CASE WHEN ip.faction = 'PRO' THEN 1 ELSE 0 END)     as pro_count,
-             SUM(CASE WHEN ip.faction = 'CON' THEN 1 ELSE 0 END)     as con_count,
-             SUM(CASE WHEN ip.faction = 'NEUTRAL' THEN 1 ELSE 0 END) as neutral_count
+             COUNT(ip.id)                          as participant_count,
+             SUM(IF(ip.faction = 'PRO', 1, 0))     as pro_count,
+             SUM(IF(ip.faction = 'CON', 1, 0))     as con_count,
+             SUM(IF(ip.faction = 'NEUTRAL', 1, 0)) as neutral_count
       FROM issue i
                LEFT JOIN issue_participation ip ON i.id = ip.issue_id
       WHERE i.is_approved = TRUE
@@ -26,10 +26,10 @@ export const IssueDefaultRepository = {
       SELECT i.id,
              i.name,
              i.created_at,
-             COUNT(ip.id)                                            as participant_count,
-             SUM(CASE WHEN ip.faction = 'PRO' THEN 1 ELSE 0 END)     as pro_count,
-             SUM(CASE WHEN ip.faction = 'CON' THEN 1 ELSE 0 END)     as con_count,
-             SUM(CASE WHEN ip.faction = 'NEUTRAL' THEN 1 ELSE 0 END) as neutral_count
+             COUNT(ip.id)                          as participant_count,
+             SUM(IF(ip.faction = 'PRO', 1, 0))     as pro_count,
+             SUM(IF(ip.faction = 'CON', 1, 0))     as con_count,
+             SUM(IF(ip.faction = 'NEUTRAL', 1, 0)) as neutral_count
       FROM issue i
                LEFT JOIN issue_participation ip ON i.id = ip.issue_id
       WHERE i.is_approved = TRUE

@@ -5,19 +5,21 @@ const DateUtil = {
   },
 
   format(date, format) {
+    const d = new Date(date);
     const map = {
-      YYYY: date.getFullYear().toString(),
-      yyyy: date.getFullYear().toString(),
-      MM: (date.getMonth() + 1).toString().padStart(2, "0"),
-      DD: date.getDate().toString().padStart(2, "0"),
-      HH: date.getHours().toString().padStart(2, "0"),
-      mm: date.getMinutes().toString().padStart(2, "0"),
-      ss: date.getSeconds().toString().padStart(2, "0"),
+      YYYY: d.getFullYear().toString(),
+      YY: d.getFullYear().toString().slice(2, 4),
+      yyyy: d.getFullYear().toString(),
+      MM: (d.getMonth() + 1).toString().padStart(2, "0"),
+      DD: d.getDate().toString().padStart(2, "0"),
+      HH: d.getHours().toString().padStart(2, "0"),
+      mm: d.getMinutes().toString().padStart(2, "0"),
+      ss: d.getSeconds().toString().padStart(2, "0"),
     };
 
     // 패턴에 매칭되는 값을 대체
-    return format.replace(/YYYY|yyyy|MM|DD|HH|mm|ss/g, (match) => map[match]);
-  }
+    return format.replace(/YYYY|yyyy|YY|MM|DD|HH|mm|ss/g, (match) => map[match]);
+  },
 };
 
 export default DateUtil;
