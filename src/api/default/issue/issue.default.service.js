@@ -34,38 +34,38 @@ const IssueDefaultService = {
     }
   },
   get: async (req, res) => {
-    const { issueId } = req.params;
-    const userId = req.info?.user_id || 'anonymous';
-    const clientIp = req.ip;
-    const viewKey = `view:${issueId}:${userId || clientIp}`;
-    const viewCooldown = 3600; // 1시간 (초)
+    const {issueId} = req.params
+    const userId = req.info?.user_id || 'anonymous'
+    const clientIp = req.ip
+    const viewKey = `view:${issueId}:${userId || clientIp}`
+    const viewCooldown = 3600 // 1시간 (초)
 
     try {
       // 1. 이슈 정보 가져오기
-      const issue = await dbConn.getOne(IssueRepository.getIssueById, [issueId]);
+      const issue = await dbConn.getOne(IssueRepository.getIssueById, [issueId])
       if (!issue) {
-        return statusResponse(req, res, STATUS.NOT_FOUND.code, '이슈를 찾을 수 없습니다.');
+        return statusResponse(req, res, STATUS.NOT_FOUND.code, '이슈를 찾을 수 없습니다.')
       }
 
       // 2. Redis로 조회수 관리
-      const lastView = await RedisClient.get(viewKey);
+      const lastView = await RedisClient.get(viewKey)
       if (!lastView) {
-        await RedisClient.incr(`view_count:${issueId}`);
-        await RedisClient.setex(viewKey, viewCooldown, '1');
+        await RedisClient.setex(viewKey, viewCooldown, '1')
       }
+      await RedisClient.incr(`view_count:${issueId}`)
 
-      let viewCount = await RedisClient.get(`view_count:${issueId}`);
-      viewCount = viewCount ? parseInt(viewCount) : 0;
+      let viewCount = await RedisClient.get(`view_count:${issueId}`)
+      viewCount = viewCount ? parseInt(viewCount) : 0
 
       const result = {
         ...issue,
-        views: issue.views + viewCount
+        views: issue.views + viewCount,
       }
 
       // 3. 응답
-      statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result);
+      statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result)
     } catch (e) {
-      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message);
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
     }
   },
 }

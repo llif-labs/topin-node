@@ -4,8 +4,6 @@ export const createAdminAuthCondition = (req, res) => {
   const {data} = req.body
   const condition = []
 
-  console.log(data)
-
   if (data.length > 0) {
     data.map((item) => {
 

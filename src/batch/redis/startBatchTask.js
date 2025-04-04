@@ -5,7 +5,7 @@ import DateUtil from '../../core/util/dateUtil.js'
 
 const startBatchTask = {
   views: () => {
-    cron.schedule('0 */5 * * * *', async () => {
+    cron.schedule('0 * * * * *', async () => {
       const startTime = Date.now()
       const date = new Date()
 

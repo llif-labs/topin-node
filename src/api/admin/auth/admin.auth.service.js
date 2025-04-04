@@ -4,13 +4,6 @@ import dbConn from '../../../config/dbConn.js'
 import AdminAuthRepository from './admin.auth.repository.js'
 import {createAdminAuthCondition, NOT_INVALID} from './admin.auth.util.js'
 
-const userStatusCondition = {
-  all: '',
-  active: 'status = \'active\'',
-  banned: 'status = \'banned\'',
-  deactivated: 'status = \'deactivated\'',
-}
-
 const AdminAuthService = {
   size: async (req, res) => {
     const condition = createAdminAuthCondition(req, res)

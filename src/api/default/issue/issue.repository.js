@@ -75,4 +75,6 @@ export const IssueDefaultRepository = {
       ORDER BY view_count DESC
       LIMIT 5
   `,
+
+  getActiveIssue: `SELECT * FROM issue WHERE id = ? AND is_approved = TRUE`
 }
