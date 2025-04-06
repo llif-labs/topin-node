@@ -55,6 +55,8 @@ const AdminIssueRepository = {
 
     return {sql, params}
   },
+
+  updateIssueApproved: 'UPDATE issue SET is_approved = ?, reject_reason = ? WHERE id = ?'
 }
 
 export default AdminIssueRepository

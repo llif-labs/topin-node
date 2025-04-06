@@ -26,7 +26,20 @@ const AdminIssueService = {
     const result = await dbConn.page(sql, params, currentPage, size)
 
     statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result)
-  }
+  },
+
+  approvedIssue: async (req, res) => {
+    const {issueId, rejectReason, status} = req.body
+
+    try {
+      await dbConn.query(AdminIssueRepository.updateIssueApproved, [status, rejectReason, issueId])
+
+      statusResponse(req, res, STATUS.UPDATE_SUCCESS.code, STATUS.UPDATE_SUCCESS.message)
+    } catch (e) {
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
+    }
+
+  },
 }
 
 
