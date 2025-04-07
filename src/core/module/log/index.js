@@ -15,7 +15,7 @@ const WriteLog = async (req, statusCode, message) => {
   const sql = `INSERT INTO log(level, message, endPoint, ip, user_id) VALUES (?, ?, ?, ?, ?)`
   const params = [level, message, req.originalUrl, requestIp]
 
-  const userId = req.info ? req.info.userId : null
+  const userId = req.info ? req.info.user_id : null
   params.push(userId)
 
   await dbConn.query(sql, params)

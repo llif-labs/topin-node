@@ -7,6 +7,6 @@ export const options = {
 
 export const refreshOption = {
   algorithm: 'HS256', // 해싱 알고리즘
-  expiresIn: '6M',    // refreshToken 유효 기간: 6개월
+  expiresIn: '180d',    // refreshToken 유효 기간: 6개월
   issuer: process.env.JWT_SECRET // 발행자
 }

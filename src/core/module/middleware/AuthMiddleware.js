@@ -24,7 +24,7 @@ export const AdminMiddleware = async (req, res, next) => {
 
     req.info = {...await AuthUtil.tokenValidation(res, accessToken, refreshToken)}
 
-    if(req.info.role !== 1) throw new Error(STATUS.UNAUTHORIZED.code)
+    if(req.info.role < 100) throw new Error(STATUS.UNAUTHORIZED.code)
 
     next()
   }catch (e) {

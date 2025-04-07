@@ -17,6 +17,7 @@ const JWT = {
     try {
       return jwt.verify(accessToken, secretKey)
     } catch (err) {
+      console.log(err.name)
       if (err.name === 'TokenExpiredError') {
         try {
           const decoded = jwt.verify(refreshToken, secretKey)
@@ -34,6 +35,8 @@ const JWT = {
           return jwt.verify(newAccessToken, secretKey)
         } catch (refreshErr) {
           // Refresh Token도 유효하지 않음
+          console.log(refreshErr.name)
+          console.log(refreshErr.message)
           throw new Error('Refresh Token is invalid or expired')
         }
       }
