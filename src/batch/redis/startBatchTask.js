@@ -2,14 +2,13 @@ import cron from 'node-cron'
 import RedisClient from '../../config/redisConfig.js'
 import dbConn from '../../config/dbConn.js'
 import DateUtil from '../../core/util/dateUtil.js'
+import * as RedisUtil from '../../core/util/RedisUtil.js'
+import {postViewPrimary} from '../../core/common/redis.key.js'
 
 const startBatchTask = {
-  views: () => {
+  issueView: () => {
     cron.schedule('0 * * * * *', async () => {
       const startTime = Date.now()
-      const date = new Date()
-
-      console.log(`[Redis - 이슈 조회수 저장 시작] ${DateUtil.format(date, 'YY.MM.DD HH:mm:ss')}`)
 
       const keys = await RedisClient.keys('view_count:*')
       for (const key of keys) {
@@ -35,7 +34,33 @@ const startBatchTask = {
       const endTime = Date.now()
       const elapsedTime = (endTime - startTime) / 1000
 
-      console.log(`⏳ 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
+      console.log(`⏳ Redis - 이슈 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
+    })
+  },
+
+  postView: () => {
+    cron.schedule('0 * * * * *', async () => {
+      const startTime = Date.now()
+
+      const keys = await RedisUtil.getScanRedisKey(postViewPrimary, 2)
+
+      for (const key of keys) {
+        const postId = key.split(':')[1]
+        const postViewCount = await RedisClient.get(key)
+
+        if (postViewCount) {
+          const count = parseInt(postViewCount, 10)
+
+          await dbConn.query('UPDATE issue_post SET view = ? WHERE id = ?', [count, postId])
+        }
+
+        await RedisClient.del(key)
+      }
+
+      const endTime = Date.now()
+      const elapsedTime = (endTime - startTime) / 1000
+      console.log(`⏳ Redis - 게시글 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
+
     })
   },
 }

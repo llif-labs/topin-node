@@ -2,6 +2,8 @@ import dbConn from '../../../config/dbConn.js'
 import PostRepository from './post.repository.js'
 import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
+import {postView, postViewLimit, viewCoolDown} from '../../../core/common/redis.key.js'
+import RedisClient from '../../../config/redisConfig.js'
 
 const PostService = {
   getAll: async (req, res) => {
@@ -15,6 +17,37 @@ const PostService = {
     }
   },
 
+  getPost: async (req, res) => {
+    const {postId} = req.params
+    const user_id = req.info?.user_id || null
+    const clientIp = req.ip.replace('::1', 'localhost')
+    const postViewLimitKey = postViewLimit(postId, user_id || clientIp)
+    const postViewKey = postView(postId)
+    try {
+      const post = await dbConn.getOne(PostRepository.getPost, [postId])
+
+      // await RedisClient.del(postViewLimitKey)
+      console.log('postViewLimitKey')
+      console.log(postViewLimitKey)
+      console.log('postViewLimitKey')
+      const cachePostView = await RedisClient.get(postViewLimitKey)
+      if(!cachePostView) {
+        await RedisClient.setex(postViewLimitKey, viewCoolDown, '1')
+        await RedisClient.incr(postViewKey)
+      }
+
+      const result = {
+        ...post,
+        view: post.view + await RedisClient.get(postViewKey) | 0
+      }
+
+      statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.POST_SUCCESS.message, result)
+    } catch (e) {
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
+
+    }
+  },
+
   write: async (req, res) => {
     const {user_id} = req.info
     const {issueId} = req.params
@@ -22,7 +55,7 @@ const PostService = {
     try {
       const participation = await dbConn.getOne(PostRepository.getParticipationIssue, [user_id, issueId])
 
-      if(!participation) throw new Error(STATUS.BAD_REQUEST.message)
+      if (!participation) throw new Error(STATUS.BAD_REQUEST.message)
 
       await dbConn.query(PostRepository.write, [issueId, user_id, content])
 
@@ -40,7 +73,7 @@ const PostService = {
     try {
       const participation = await dbConn.getOne(PostRepository.getParticipationIssue, [user_id, issueId])
 
-      if(!participation) throw new Error(STATUS.BAD_REQUEST.message)
+      if (!participation) throw new Error(STATUS.BAD_REQUEST.message)
 
       await dbConn.query(PostRepository.reply, [postId, user_id, content])
 
@@ -48,7 +81,7 @@ const PostService = {
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
     }
-  }
+  },
 }
 
 export default PostService

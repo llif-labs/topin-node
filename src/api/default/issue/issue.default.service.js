@@ -3,7 +3,7 @@ import dbConn from '../../../config/dbConn.js'
 import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
 import RedisClient from '../../../config/redisConfig.js'
-import {cacheMainStats} from '../../../core/common/redis.key.js'
+import {cacheMainStats, viewCoolDown} from '../../../core/common/redis.key.js'
 
 const IssueDefaultService = {
   getAll: async (req, res) => {
@@ -41,10 +41,9 @@ const IssueDefaultService = {
   },
   get: async (req, res) => {
     const {issueId} = req.params
-    const user_id = req.info?.user_id || 'anonymous'
+    const user_id = req.info?.user_id || null
     const clientIp = req.ip
     const viewKey = `view:${issueId}:${user_id || clientIp}`
-    const viewCooldown = 3600
 
     try {
       const issue = await dbConn.getOne(IssueRepository.getIssueById, [issueId])
@@ -54,9 +53,9 @@ const IssueDefaultService = {
 
       const lastView = await RedisClient.get(viewKey)
       if (!lastView) {
-        await RedisClient.setex(viewKey, viewCooldown, '1')
+        await RedisClient.incr(`view_count:${issueId}`)
+        await RedisClient.setex(viewKey, viewCoolDown, '1')
       }
-      await RedisClient.incr(`view_count:${issueId}`)
 
       // TODO - 통계는 추후 Redis 에서 관리하자..
       const participant = await dbConn.getOne(IssueRepository.getParticipantStatistics, [issueId, issueId])
