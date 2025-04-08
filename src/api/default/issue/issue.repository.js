@@ -2,6 +2,20 @@ export const IssueRepository = {
   regi: `INSERT INTO issue(user_id, name, reason) VALUE (?, ?, ?)`,
   getMyIssues: 'SELECT * FROM issue WHERE user_id = ?',
   getIssueById: 'SELECT * FROM issue WHERE id = ?',
+  getParticipantStatisticsMe: `SELECT faction FROM issue_participation WHERE issue_id = ? AND user_id = ?`,
+  getParticipantStatistics: `
+      SELECT JSON_OBJECTAGG(key_name, value) AS result
+      FROM (
+               SELECT faction AS key_name, COUNT(*) AS value
+               FROM issue_participation
+               WHERE issue_id = ?
+               GROUP BY faction
+               UNION ALL
+               SELECT 'total' AS key_name, COUNT(*) AS value
+               FROM issue_participation
+               WHERE issue_id = ?
+           ) AS combined
+  `,
   deleteIssue: 'DELETE FROM issue WHERE id = ?',
   checkParticipation: 'SELECT * FROM issue_participation WHERE user_id = ? AND issue_id = ?',
   participate: 'INSERT INTO issue_participation (user_id, issue_id, faction) VALUES (?, ?, ?)',

@@ -24,29 +24,29 @@ const PostRepository = {
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
-                                             'reply_id', lr_inner.id,
-                                             'content', lr_inner.content,
-                                             'created_at', lr_inner.created_at,
-                                             'reply_user', lr_inner.reply_user,
-                                             'like', lr_inner.like,
-                                             'faction', lr_inner.faction
+                                             'reply_id', lr.id,
+                                             'content', lr.content,
+                                             'created_at', lr.created_at,
+                                             'reply_user', lr.reply_user,
+                                             'like', lr.like,
+                                             'faction', lr.faction
                                      )
                              )
-                      FROM limit_reply lr_inner
-                      WHERE lr_inner.post_id = ip.id AND lr_inner.id IS NOT NULL),
+                      FROM limit_reply lr
+                      WHERE lr.post_id = ip.id AND lr.id IS NOT NULL),
                      JSON_ARRAY()
              ) AS replies,
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
-                                             'id', f_inner.id,
-                                             'fileName', f_inner.filename,
-                                             'ext', f_inner.ext,
-                                             'path', f_inner.path
+                                             'id', f.id,
+                                             'fileName', f.filename,
+                                             'ext', f.ext,
+                                             'path', f.path
                                      )
                              )
-                      FROM file f_inner
-                      WHERE f_inner.type = 1 AND f_inner.parent = ip.id AND f_inner.id IS NOT NULL),
+                      FROM file f
+                      WHERE f.type = 1 AND f.parent = ip.id AND f.id IS NOT NULL),
                      JSON_ARRAY()
              ) AS file
       FROM issue_post ip

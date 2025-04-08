@@ -7,7 +7,6 @@ const PostService = {
   getAll: async (req, res) => {
     const {issueId} = req.params
     const {lastId, limit} = req.query
-
     try {
       const result = await dbConn.query(PostRepository.getAll, [issueId, Number(lastId), Number(limit)])
       statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result)
