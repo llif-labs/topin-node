@@ -7,6 +7,7 @@ const STATUS = {
   LOGIN_SUCCESS: {code: 200, message: '로그인에 성공하였습니다.'},
   SEND_EMAIL_SUCCESS: {code: 200, message: '메읿 발송에 성공하였습니다.'},
   REGISTER_SUCCESS: {code: 200, message: '로그인에 성공하였습니다.'},
+  REPORT_SUCCESS: {code: 200, message: '신고되었습니다.'},
 
   CONFLICT: {code: 400, message: '코드가 일치하지 않습니다.'},
   EXIST_PROVIDER: {code: 400, message: '이미 가입된 소셜 계정 입니다.'},
