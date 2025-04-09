@@ -11,7 +11,7 @@ const smtpPassword = 'kitghaurcxjrzayw'
 apiConfig = {
   name: 'topin-node-v1',
   script: './bin/app.js',
-  instances: 1, // 클러스터 모드
+  instances: 3, // 클러스터 모드
   watch: false,
   env: {
     NODE_ENV: 'development',

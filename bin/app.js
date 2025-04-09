@@ -41,5 +41,5 @@ app.use('/api', api)
 
 
 app.listen(port, () => {
-  console.log(`server is running on port ${port}`)
+  console.log(`[CLUSTER] API Server is running on port ${port}`)
 })
