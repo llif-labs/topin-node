@@ -5,3 +5,6 @@ export const cacheMainStats = 'main_stats'
 export const postViewPrimary = 'postView'
 export const postViewLimit = (postId, key) => `${postViewPrimary}:${postId}:${key}`
 export const postView = (postId) => `${postViewPrimary}:${postId}`
+
+export const postLikePrimary = 'postLike'
+export const postLike = (postId, user_id) => `${postLikePrimary}:${postId}:${user_id}`

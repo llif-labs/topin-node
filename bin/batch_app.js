@@ -7,6 +7,9 @@ const PORT = 4000
 startBatchTask.issueView()
 startBatchTask.postView()
 
+// 1초 batch
+startBatchTask.saveLike()
+
 app.listen(PORT, () => {
   console.log(`
 (\`-')                  _  (\`-')   _      <-. (\`-')_    (\`-').->  (\`-')  _    (\`-')        (\`-') (\`-')  _    (\`-')

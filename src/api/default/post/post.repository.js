@@ -20,6 +20,8 @@ const PostRepository = {
              ip.like,
              ip.view,
              u1.nickname,
+             IF((SELECT id FROM issue_like il WHERE il.parent = 1 AND il.user_id = ? AND il.parent = ip.id),
+                true, false) AS likeMe,
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
@@ -35,7 +37,7 @@ const PostRepository = {
                       WHERE lr.post_id = ip.id
                         AND lr.id IS NOT NULL),
                      JSON_ARRAY()
-             ) AS replies,
+             )               AS replies,
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
@@ -50,7 +52,7 @@ const PostRepository = {
                         AND f.parent = ip.id
                         AND f.id IS NOT NULL),
                      JSON_ARRAY()
-             ) AS file
+             )               AS file
       FROM issue_post ip
                INNER JOIN user u1 ON u1.id = ip.user_id
                INNER JOIN issue_participation ipn ON ipn.issue_id = ip.issue_id

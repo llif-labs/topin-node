@@ -2,15 +2,16 @@ import dbConn from '../../../config/dbConn.js'
 import PostRepository from './post.repository.js'
 import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
-import {postView, postViewLimit, viewCoolDown} from '../../../core/common/redis.key.js'
+import {postLike, postView, postViewLimit, viewCoolDown} from '../../../core/common/redis.key.js'
 import RedisClient from '../../../config/redisConfig.js'
 
 const PostService = {
   getAll: async (req, res) => {
     const {issueId} = req.params
+    const {user_id} = req.info
     const {lastId, limit} = req.query
     try {
-      const result = await dbConn.query(PostRepository.getAll, [issueId, Number(lastId), Number(limit)])
+      const result = await dbConn.query(PostRepository.getAll, [user_id, issueId, Number(lastId), Number(limit)])
       statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result)
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
@@ -27,14 +28,14 @@ const PostService = {
       const post = await dbConn.getOne(PostRepository.getPost, [postId])
 
       const cachePostView = await RedisClient.get(postViewLimitKey)
-      if(!cachePostView) {
+      if (!cachePostView) {
         await RedisClient.setex(postViewLimitKey, viewCoolDown, '1')
         await RedisClient.incr(postViewKey)
       }
 
       const result = {
         ...post,
-        view: post.view + await RedisClient.get(postViewKey) | 0
+        view: post.view + await RedisClient.get(postViewKey) | 0,
       }
 
       statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.POST_SUCCESS.message, result)
@@ -74,6 +75,25 @@ const PostService = {
       await dbConn.query(PostRepository.reply, [postId, user_id, content])
 
       statusResponse(req, res, STATUS.POST_SUCCESS.code, STATUS.POST_SUCCESS.message)
+    } catch (e) {
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
+    }
+  },
+
+  like: async (req, res) => {
+    const {user_id} = req.info
+    const {postId} = req.params
+    const {status} = req.body // 1 or 0
+    const postLikeKey = postLike(postId, user_id)
+
+    try {
+      if (![0, 1].includes(Number(status))) {
+        return statusResponse(req, res, STATUS.BAD_REQUEST.code, '잘못된 status 값입니다.')
+      }
+
+      await RedisClient.set(postLikeKey, status)
+
+      statusResponse(req, res, STATUS.UPDATE_SUCCESS.code, STATUS.UPDATE_SUCCESS.message)
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
     }

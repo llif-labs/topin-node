@@ -9,5 +9,6 @@ PostController.get('/get/:postId', PostService.getPost)
 
 PostController.post('/:issueId', AuthMiddleware, PostService.write)
 PostController.post('/:postId/reply/:issueId', AuthMiddleware, PostService.reply)
+PostController.put('/:postId/like', AuthMiddleware, PostService.like)
 
 export default PostController

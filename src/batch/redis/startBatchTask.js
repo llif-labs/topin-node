@@ -1,11 +1,14 @@
 import cron from 'node-cron'
 import RedisClient from '../../config/redisConfig.js'
 import dbConn from '../../config/dbConn.js'
-import DateUtil from '../../core/util/dateUtil.js'
-import * as RedisUtil from '../../core/util/RedisUtil.js'
 import {postViewPrimary} from '../../core/common/redis.key.js'
+import RedisUtil from '../../core/util/RedisUtil.js'
+import {savePostLike} from './saveLike.js'
 
 const startBatchTask = {
+  /**
+   * 이슈 조회수 저장
+   */
   issueView: () => {
     cron.schedule('0 * * * * *', async () => {
       const startTime = Date.now()
@@ -31,13 +34,18 @@ const startBatchTask = {
         }
       }
 
-      const endTime = Date.now()
-      const elapsedTime = (endTime - startTime) / 1000
+      if (keys.length > 0) {
+        const endTime = Date.now()
+        const elapsedTime = (endTime - startTime) / 1000
 
-      console.log(`⏳ Redis - 이슈 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
+        console.log(`⏳ Redis - 이슈 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
+      }
     })
   },
 
+  /**
+   * 게시글 조회수 저장
+   */
   postView: () => {
     cron.schedule('0 * * * * *', async () => {
       const startTime = Date.now()
@@ -57,10 +65,24 @@ const startBatchTask = {
         await RedisClient.del(key)
       }
 
-      const endTime = Date.now()
-      const elapsedTime = (endTime - startTime) / 1000
-      console.log(`⏳ Redis - 게시글 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
 
+      if (keys.length > 0) {
+        const endTime = Date.now()
+        const elapsedTime = (endTime - startTime) / 1000
+
+        console.log(`⏳ Redis - 게시글 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
+      }
+
+
+    })
+  },
+
+  /**
+   * 게시글/댓글 좋아요 저장
+   */
+  saveLike: () => {
+    cron.schedule('*/2 * * * * *', async () => {
+      await savePostLike()
     })
   },
 }

@@ -81,11 +81,11 @@ const dbConn = {
     const conn = await dbConn.getConnection()
 
     try {
-      await conn.beginTransaction()  // 트랜잭션 시작
+      await conn.beginTransaction()
       const results = []
       let lastInsertId = null
 
-      for (const {sql, params, getInsertId, skip} of queries) {
+      for (const {sql, params, getInsertId, skip, after} of queries) {
         if (skip) {
           results.push({skipped: true})
           continue
@@ -97,6 +97,10 @@ const dbConn = {
 
         const result = await executeQuery(conn, sql, adjustedParams)
         results.push(result)
+
+        if (after && typeof after === 'function') {
+          await after(result)
+        }
 
         if (getInsertId) {
           lastInsertId = result.insertId

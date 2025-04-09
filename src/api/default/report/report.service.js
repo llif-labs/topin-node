@@ -1,6 +1,6 @@
 import DbConn from '../../../config/dbConn.js'
 import {ReportRepository} from './report.repository.js'
-import {REPORT_CONSTANT} from './report.constant.js'
+import {REPORT_CONSTANT} from '../../../core/common/constant/report.constant.js'
 import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
 
