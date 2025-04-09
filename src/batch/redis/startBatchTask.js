@@ -21,7 +21,7 @@ const startBatchTask = {
         if (viewCount) {
           const count = parseInt(viewCount, 10)
 
-          await dbConn.query('UPDATE issue SET views = views + ? WHERE id = ?', [count, issueId])
+          await dbConn.query('UPDATE issue SET view = view + ? WHERE id = ?', [count, issueId])
 
           await dbConn.query(
             `INSERT INTO issue_view (issue_id, count, viewed_at)
@@ -59,7 +59,7 @@ const startBatchTask = {
         if (postViewCount) {
           const count = parseInt(postViewCount, 10)
 
-          await dbConn.query('UPDATE issue_post SET view = ? WHERE id = ?', [count, postId])
+          await dbConn.query('UPDATE issue_post SET view = view + ? WHERE id = ?', [count, postId])
         }
 
         await RedisClient.del(key)

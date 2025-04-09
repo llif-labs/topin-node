@@ -27,15 +27,19 @@ const PostService = {
     try {
       const post = await dbConn.getOne(PostRepository.getPost, [user_id, postId])
 
+      await RedisClient.del(postViewLimitKey)
       const cachePostView = await RedisClient.get(postViewLimitKey)
       if (!cachePostView) {
         await RedisClient.setex(postViewLimitKey, viewCoolDown, '1')
         await RedisClient.incr(postViewKey)
       }
 
+      let viewCount = await RedisClient.get(postViewKey)
+      viewCount = viewCount ? parseInt(viewCount) : 0
+
       const result = {
         ...post,
-        view: post.view + await RedisClient.get(postViewKey) | 0,
+        view: post.view + viewCount,
       }
 
       statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.POST_SUCCESS.message, result)

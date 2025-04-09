@@ -68,7 +68,7 @@ const IssueDefaultService = {
       const result = {
         issue: {
           ...issue,
-          views: issue.views + viewCount,
+          view: issue.view + viewCount,
         },
         participant: {...participant.result},
         me,
