@@ -25,7 +25,7 @@ const PostService = {
     const postViewLimitKey = postViewLimit(postId, user_id || clientIp)
     const postViewKey = postView(postId)
     try {
-      const post = await dbConn.getOne(PostRepository.getPost, [postId])
+      const post = await dbConn.getOne(PostRepository.getPost, [user_id, postId])
 
       const cachePostView = await RedisClient.get(postViewLimitKey)
       if (!cachePostView) {

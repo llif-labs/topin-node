@@ -15,12 +15,13 @@ const PostRepository = {
                                           INNER JOIN user u ON u.id = ir.user_id
                                           INNER JOIN issue_participation ipn ON u.id = ipn.user_id) AS ranked
                            WHERE rn <= 5)
-      SELECT ip.content,
+      SELECT ip.id,
+             ip.content,
              ip.created_at,
              ip.like,
              ip.view,
              u1.nickname,
-             IF((SELECT id FROM issue_like il WHERE il.parent = 1 AND il.user_id = ? AND il.parent = ip.id),
+             IF((SELECT id FROM issue_like il WHERE il.type = 1 AND il.user_id = ? AND il.parent = ip.id),
                 true, false) AS likeMe,
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
@@ -62,11 +63,14 @@ const PostRepository = {
       LIMIT ?
   `,
   getPost: `
-      SELECT ip.content,
+      SELECT ip.id,
+             ip.content,
              ip.created_at,
              ip.like,
              ip.view,
              u1.nickname,
+             IF((SELECT id FROM issue_like il WHERE il.type = 1 AND il.user_id = ? AND il.parent = ip.id),
+                true, false) AS likeMe,
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
@@ -80,11 +84,12 @@ const PostRepository = {
                              )
                       FROM issue_reply lr
                                INNER JOIN user u2 ON u2.id = lr.user_id
-                               INNER JOIN issue_participation ipn ON ipn.issue_id = ip.issue_id AND ipn.user_id = lr.user_id
+                               INNER JOIN issue_participation ipn
+                                          ON ipn.issue_id = ip.issue_id AND ipn.user_id = lr.user_id
                       WHERE lr.post_id = ip.id
                         AND lr.id IS NOT NULL),
                      JSON_ARRAY()
-             ) AS replies,
+             )               AS replies,
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
@@ -99,7 +104,7 @@ const PostRepository = {
                         AND f.parent = ip.id
                         AND f.id IS NOT NULL),
                      JSON_ARRAY()
-             ) AS file
+             )               AS file
       FROM issue_post ip
                LEFT JOIN issue_reply ir ON ip.id = ir.post_id
                INNER JOIN user u1 ON u1.id = ip.user_id
