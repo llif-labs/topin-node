@@ -3,7 +3,8 @@ import RedisClient from '../../config/redisConfig.js'
 import dbConn from '../../config/dbConn.js'
 import {postViewPrimary} from '../../core/common/redis.key.js'
 import RedisUtil from '../../core/util/RedisUtil.js'
-import {savePostLike} from './saveLike.js'
+import {savePostLike} from './likeBatch/savePostLike.js'
+import saveReplyLike from './likeBatch/saveReplyLike.js'
 
 const startBatchTask = {
   /**
@@ -81,8 +82,9 @@ const startBatchTask = {
    * 게시글/댓글 좋아요 저장
    */
   saveLike: () => {
-    cron.schedule('*/2 * * * * *', async () => {
+    cron.schedule('*/10 * * * * *', async () => {
       await savePostLike()
+      await saveReplyLike()
     })
   },
 }

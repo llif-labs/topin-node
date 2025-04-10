@@ -8,3 +8,8 @@ export const postView = (postId) => `${postViewPrimary}:${postId}`
 
 export const postLikePrimary = 'postLike'
 export const postLike = (postId, user_id) => `${postLikePrimary}:${postId}:${user_id}`
+
+export const replyLikePrimary = 'replyLike'
+export const replyLike = (replyId, userId) => `${replyLikePrimary}:${replyId}:${userId}`
+
+export const likeKey = (primary, parent, userId) => `${primary}:${parent}:${userId}`

@@ -17,7 +17,7 @@ const PostRepository = {
                            WHERE rn <= 5)
       SELECT ip.id,
              ip.content,
-             ip.created_at,
+             ip.created_at as createdAt,
              ip.like,
              ip.view,
              u1.nickname,
@@ -26,12 +26,14 @@ const PostRepository = {
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
-                                             'reply_id', lr.id,
+                                             'replyId', lr.id,
                                              'content', lr.content,
-                                             'created_at', lr.created_at,
-                                             'reply_user', lr.reply_user,
+                                             'createdAt', lr.created_at,
+                                             'replyUser', lr.reply_user,
                                              'like', lr.like,
-                                             'faction', lr.faction
+                                             'faction', lr.faction,
+                                             'likeMe', IF((SELECT id FROM issue_like il WHERE il.type = 2 AND il.user_id = ? AND il.parent = lr.id),
+                                                true, false)
                                      )
                              )
                       FROM limit_reply lr
@@ -65,7 +67,7 @@ const PostRepository = {
   getPost: `
       SELECT ip.id,
              ip.content,
-             ip.created_at,
+             ip.created_at as createdAt,
              ip.like,
              ip.view,
              u1.nickname,
@@ -74,12 +76,14 @@ const PostRepository = {
              COALESCE(
                      (SELECT JSON_ARRAYAGG(
                                      JSON_OBJECT(
-                                             'reply_id', lr.id,
+                                             'replyId', lr.id,
                                              'content', lr.content,
-                                             'created_at', lr.created_at,
-                                             'reply_user', u2.nickname,
+                                             'createdAt', lr.created_at,
+                                             'replyUser', u2.nickname,
                                              'like', lr.like,
-                                             'faction', ipn.faction
+                                             'faction', ipn.faction,
+                                             'likeMe', IF((SELECT id FROM issue_like il WHERE il.type = 2 AND il.user_id = ? AND il.parent = lr.id),
+                                                          true, false)
                                      )
                              )
                       FROM issue_reply lr

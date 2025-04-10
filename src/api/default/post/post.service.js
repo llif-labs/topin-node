@@ -2,8 +2,16 @@ import dbConn from '../../../config/dbConn.js'
 import PostRepository from './post.repository.js'
 import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
-import {postLike, postView, postViewLimit, viewCoolDown} from '../../../core/common/redis.key.js'
+import {
+  likeKey,
+  postLike,
+  postLikePrimary,
+  postView,
+  postViewLimit, replyLike, replyLikePrimary,
+  viewCoolDown,
+} from '../../../core/common/redis.key.js'
 import RedisClient from '../../../config/redisConfig.js'
+import LIKE_CONSTANT from '../../../core/common/constant/like.constant.js'
 
 const PostService = {
   getAll: async (req, res) => {
@@ -11,7 +19,7 @@ const PostService = {
     const {user_id} = req.info
     const {lastId, limit} = req.query
     try {
-      const result = await dbConn.query(PostRepository.getAll, [user_id, issueId, Number(lastId), Number(limit)])
+      const result = await dbConn.query(PostRepository.getAll, [user_id, user_id, issueId, Number(lastId), Number(limit)])
       statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, result)
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
@@ -25,8 +33,8 @@ const PostService = {
     const postViewLimitKey = postViewLimit(postId, user_id || clientIp)
     const postViewKey = postView(postId)
     try {
-      const post = await dbConn.getOne(PostRepository.getPost, [user_id, postId])
-      
+      const post = await dbConn.getOne(PostRepository.getPost, [user_id, user_id, postId])
+
       const cachePostView = await RedisClient.get(postViewLimitKey)
       if (!cachePostView) {
         await RedisClient.setex(postViewLimitKey, viewCoolDown, '1')
@@ -85,14 +93,28 @@ const PostService = {
 
   like: async (req, res) => {
     const {user_id} = req.info
-    const {postId} = req.params
+    const {type, parent} = req.params
     const {status} = req.body // 1 or 0
-    const postLikeKey = postLike(postId, user_id)
+
+    let primaryKey = ''
 
     try {
       if (![0, 1].includes(Number(status))) {
         return statusResponse(req, res, STATUS.BAD_REQUEST.code, '잘못된 status 값입니다.')
       }
+
+      switch (Number(type)) {
+        case LIKE_CONSTANT.POST:
+          primaryKey = postLikePrimary
+          break
+        case LIKE_CONSTANT.REPLY:
+          primaryKey = replyLikePrimary
+          break
+        default:
+          return statusResponse(req, res, STATUS.BAD_REQUEST.code, '잘못된 type 값입니다.')
+      }
+
+      const postLikeKey = likeKey(primaryKey, parent, user_id)
 
       await RedisClient.set(postLikeKey, status)
 

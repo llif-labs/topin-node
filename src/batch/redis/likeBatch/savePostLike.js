@@ -1,20 +1,16 @@
-import RedisUtil from '../../core/util/RedisUtil.js'
-import {postLikePrimary} from '../../core/common/redis.key.js'
-import RedisClient from '../../config/redisConfig.js'
-import dbConn from '../../config/dbConn.js'
-import LIKE_CONSTANT from '../../core/common/constant/like.constant.js'
+import RedisUtil from '../../../core/util/RedisUtil.js'
+import {postLikePrimary} from '../../../core/common/redis.key.js'
+import RedisClient from '../../../config/redisConfig.js'
+import dbConn from '../../../config/dbConn.js'
+import LIKE_CONSTANT from '../../../core/common/constant/like.constant.js'
+import LikeBatchQuery from './sql.js'
 
 export const savePostLike = async () => {
   try {
     const postLikeKeys = await RedisUtil.getScanRedisKey(postLikePrimary, 3)
     if (!postLikeKeys) return
 
-    const postLike = {
-      ins: [],
-      del: [],
-      like: {},
-      queries: [],
-    }
+    const postLike = {ins: [], del: [], like: {}, queries: []}
 
     for (const key of postLikeKeys) {
       const value = await RedisClient.get(key)
@@ -39,13 +35,7 @@ export const savePostLike = async () => {
     if (postLike.ins.length > 0) {
       const likeTuples = postLike.ins.map(([userId, , postId]) => [userId, postId])
 
-      const existRows = await dbConn.query(
-        `SELECT user_id, parent
-         FROM issue_like
-         WHERE type = ?
-           AND (user_id, parent) IN (?)`,
-        [LIKE_CONSTANT.POST, likeTuples],
-      )
+      const existRows = await dbConn.query(LikeBatchQuery.findExist, [LIKE_CONSTANT.POST, likeTuples])
 
       const existSet = new Set(existRows.map(row => `${row.user_id}_${row.parent}`))
 
@@ -62,24 +52,17 @@ export const savePostLike = async () => {
     }
 
     if (postLike.ins.length > 0) {
-      postLike.queries.push({
-        sql: 'INSERT IGNORE INTO issue_like(user_id, type, parent) VALUES ?',
-        params: [postLike.ins],
-      })
+      postLike.queries.push({sql: LikeBatchQuery.insert, params: [postLike.ins]})
     }
 
     if (postLike.del.length > 0) {
-      postLike.queries.push({
-        sql: 'DELETE FROM issue_like WHERE (user_id, type, parent) IN (?)',
-        params: [postLike.del],
-      })
+      postLike.queries.push({sql: LikeBatchQuery.insert, params: [postLike.del]})
     }
 
     if (postLike.ins.length > 0 || postLike.del.length > 0) {
       Object.entries(postLike.like).forEach(([postId, count]) => {
         postLike.queries.push({
-          sql: 'UPDATE issue_post SET `like` = `like` + ? WHERE id = ?',
-          params: [count, parseInt(postId)],
+          sql: LikeBatchQuery.updatePost, params: [count, parseInt(postId)],
         })
       })
     }
