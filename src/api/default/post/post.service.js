@@ -32,27 +32,54 @@ const PostService = {
     const clientIp = req.ip.replace('::1', 'localhost')
     const postViewLimitKey = postViewLimit(postId, user_id || clientIp)
     const postViewKey = postView(postId)
-    try {
-      const post = await dbConn.getOne(PostRepository.getPost, [user_id, user_id, postId])
 
-      const cachePostView = await RedisClient.get(postViewLimitKey)
+    try {
+      const [cachePostView, post] = await Promise.all([
+        RedisClient.get(postViewLimitKey),
+        dbConn.getOne(PostRepository.getPost, [user_id, user_id, postId])
+      ])
+
       if (!cachePostView) {
-        await RedisClient.setex(postViewLimitKey, viewCoolDown, '1')
-        await RedisClient.incr(postViewKey)
+        await Promise.all([
+          RedisClient.setex(postViewLimitKey, viewCoolDown, '1'),
+          RedisClient.incr(postViewKey)
+        ])
       }
 
       let viewCount = await RedisClient.get(postViewKey)
       viewCount = viewCount ? parseInt(viewCount) : 0
 
+      let likeCount = await RedisClient.get(postLike(postId, user_id))
+      const postLikeMe = post.likeMe || parseInt(likeCount) === 1 ? 1 : 0
+      likeCount = likeCount && !post.likeMe ? parseInt(likeCount) : 0
+
+      const replyKeys = post.replies.map(item => replyLike(item.replyId, user_id))
+      const pipeline = RedisClient.pipeline()
+      replyKeys.forEach(key => pipeline.get(key))
+      const redisResults = await pipeline.exec()
+
+      const replies = post.replies.map((item, idx) => {
+        const like = redisResults[idx][1]
+        if (!like) return item
+        const value = Number(like) === 1 ? 1 : -1
+        return {
+          ...item,
+          like: item.like + value,
+          likeMe: Number(like) === 1 ? 1 : 0,
+        }
+      })
+
       const result = {
         ...post,
         view: post.view + viewCount,
+        like: post.like + likeCount,
+        likeMe: postLikeMe,
+        replies,
       }
 
       statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.POST_SUCCESS.message, result)
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message)
-
     }
   },
 

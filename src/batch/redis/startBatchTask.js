@@ -82,7 +82,7 @@ const startBatchTask = {
    * 게시글/댓글 좋아요 저장
    */
   saveLike: () => {
-    cron.schedule('*/10 * * * * *', async () => {
+    cron.schedule('*/2 * * * * *', async () => {
       await savePostLike()
       await saveReplyLike()
     })

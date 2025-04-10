@@ -56,7 +56,7 @@ export const savePostLike = async () => {
     }
 
     if (postLike.del.length > 0) {
-      postLike.queries.push({sql: LikeBatchQuery.insert, params: [postLike.del]})
+      postLike.queries.push({sql: LikeBatchQuery.delete, params: [postLike.del]})
     }
 
     if (postLike.ins.length > 0 || postLike.del.length > 0) {
