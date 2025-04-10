@@ -26,8 +26,7 @@ const PostService = {
     const postViewKey = postView(postId)
     try {
       const post = await dbConn.getOne(PostRepository.getPost, [user_id, postId])
-
-      await RedisClient.del(postViewLimitKey)
+      
       const cachePostView = await RedisClient.get(postViewLimitKey)
       if (!cachePostView) {
         await RedisClient.setex(postViewLimitKey, viewCoolDown, '1')
