@@ -13,3 +13,6 @@ export const replyLikePrimary = 'replyLike'
 export const replyLike = (replyId, userId) => `${replyLikePrimary}:${replyId}:${userId}`
 
 export const likeKey = (primary, parent, userId) => `${primary}:${parent}:${userId}`
+
+export const reportCoolDown = 5
+export const reportLimit = (userId) => `reportLimit:${userId}`

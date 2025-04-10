@@ -9,6 +9,7 @@ import {
   postView,
   postViewLimit, replyLike, replyLikePrimary,
   viewCoolDown,
+  reportCoolDown,
 } from '../../../core/common/redis.key.js'
 import RedisClient from '../../../config/redisConfig.js'
 import LIKE_CONSTANT from '../../../core/common/constant/like.constant.js'
