@@ -4,9 +4,11 @@ import dbConn from '../../../config/dbConn.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
 import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import {validateBasicLogin, validateSocialLogin, validateUserRegistration} from './auth.util.js'
-import EmailSender from '../../../core/module/sendEmail/EmailSender.js'
+import EmailSender, {EMAIL_TYPE} from '../../../core/module/sendEmail/EmailSender.js'
 import StringUtil from '../../../core/util/stringUtil.js'
 import jwt from '../../../core/module/jwt/jwt.js'
+import RedisClient from '../../../config/redisConfig.js'
+import {verifyEmail, verifyEmailSaveUser} from '../../../core/common/redis.key.js'
 
 const AuthService = {
   login: async (req, res) => {
@@ -40,13 +42,14 @@ const AuthService = {
 
       if (user.role > 100) {
         const code = StringUtil.genKey(6)
+        const verifyToken = StringUtil.genKey(15)
+        await RedisClient.setex(verifyEmail(verifyToken), 180, code) // 3분 유효
+        await RedisClient.setex(verifyEmailSaveUser(verifyToken), 180, JSON.stringify(user)) // 3분 유효
 
-        req.session.user = user
-        req.session.code = code
-        await new Promise(resolve => req.session.save(resolve)) // 세션 저장 완료 대기
-
-        await EmailSender(user.email, 'testEmail').send(code)
-        statusResponse(req, res, STATUS.SEND_EMAIL_SUCCESS.code, STATUS.SEND_EMAIL_SUCCESS.message)
+        await EmailSender(user.email, EMAIL_TYPE.ADMIN).verifyAdminLogin(user.name, code)
+        statusResponse(req, res, STATUS.SEND_EMAIL_SUCCESS.code, STATUS.SEND_EMAIL_SUCCESS.message, {
+          verifyToken,
+        })
       } else {
         await dbConn.query(AuthRepository.updateLastLogin, [user.id])
         statusResponse(req, res, STATUS.LOGIN_SUCCESS.code, STATUS.LOGIN_SUCCESS.message, user)
@@ -57,19 +60,29 @@ const AuthService = {
   },
 
   verifyEmail: async (req, res) => {
-    const {code} = req.body
-    const user = req.session.user
-    const verifyCode = req.session.code
+    const {verifyToken, code} = req.body
+
+    const verifyKey = verifyEmail(verifyToken)
+    const verifyUserKey = verifyEmailSaveUser(verifyToken)
+
+    const verifyCode = await RedisClient.get(verifyKey)
 
     try {
 
-      if(verifyCode !== code){
+      if (verifyCode !== code) {
         throw new Error(STATUS.NOT_VERIFY_CODE.message)
-      }else{
-        req.session.destroy()
+      } else {
+        const user = await RedisClient.get(verifyUserKey)
+
+        await Promise.all([
+          RedisClient.del(verifyKey),
+          RedisClient.del(verifyUserKey),
+        ])
+
+        statusResponse(req, res, STATUS.LOGIN_SUCCESS.code, STATUS.LOGIN_SUCCESS.message, JSON.parse(user))
       }
-      statusResponse(req, res, STATUS.LOGIN_SUCCESS.code, STATUS.LOGIN_SUCCESS.message, user)
-    }catch (e) {
+
+    } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
     }
   },

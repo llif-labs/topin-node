@@ -2,6 +2,10 @@ export const viewCoolDown = 3600
 
 export const cacheMainStats = 'main_stats'
 
+export const verifyEmailPrimary = 'verifyEmail'
+export const verifyEmail = (token) =>  `${verifyEmailPrimary}:${token}`
+export const verifyEmailSaveUser = (token) =>  `${verifyEmailPrimary}:${token}:user`
+
 export const postViewPrimary = 'postView'
 export const postViewLimit = (postId, key) => `${postViewPrimary}:${postId}:${key}`
 export const postView = (postId) => `${postViewPrimary}:${postId}`

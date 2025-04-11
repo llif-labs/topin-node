@@ -3,12 +3,14 @@ import cors from 'cors'
 import bodyParser from "body-parser";
 
 import api from '../src/api/index.js'
-import session from 'express-session'
+import path from 'path'
 
 const app = express()
 const port = process.env.PORT || 8001
 
 /******* Options *******/
+app.set('view engine', 'ejs')
+app.set('views', path.join(process.cwd(), 'views'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors({
@@ -19,20 +21,6 @@ app.use(cors({
   credentials: true  // 세션 쿠키 전송 허용
 }))
 // app.options('*', cors());  // 모든 경로에 대해 Preflight OPTIONS 요청을 허용
-
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict'
-  },
-  name: 't.auth.sid'
-}));
-
-
 
 /******* Router *******/
 app.use('/static', express.static('static'));
