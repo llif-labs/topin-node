@@ -1,8 +1,6 @@
 import {statusResponse} from '../../../core/module/statusResponse/index.js'
 import STATUS from '../../../core/module/statusResponse/status.enum.js'
 import BaseUtil from '../../../core/util/baseUtil.js'
-import dbConn from '../../../config/dbConn.js'
-import NoticeRepository from './notice.repository.js'
 import {noticeView, noticeViewLimit, viewCoolDown} from '../../../core/common/redis.key.js'
 import RedisClient from '../../../config/redisConfig.js'
 
@@ -11,6 +9,7 @@ const NoticeService = {
     const {currentPage, size} = req.query
     try {
       const result = await BaseUtil.pageInfo('notice', 'n')
+        .select(`n.id, n.type, n.title, n.description, n.created_at createdAt`)
         .pager(size, currentPage)
         .build()
 
@@ -30,13 +29,7 @@ const NoticeService = {
     try {
       const [result, lastView] = await Promise.all([
         BaseUtil.pageInfo('notice', 'n')
-          .select(`
-          n.id,
-          n.type,
-          n.title,
-          n.description,
-          n.created_at createdAt
-          `)
+          .select(`n.id, n.type, n.title, n.description, n.created_at createdAt`)
           .condition(`n.id = ${id}`)
           .build(),
         RedisClient.get(noticeViewLimitKey),

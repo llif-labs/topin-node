@@ -74,7 +74,6 @@ const startBatchTask = {
         console.log(`⏳ Redis - 게시글 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
       }
 
-
     })
   },
 
