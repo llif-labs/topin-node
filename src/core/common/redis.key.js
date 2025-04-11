@@ -17,6 +17,10 @@ export const postViewPrimary = 'postView'
 export const postViewLimit = (postId, key) => `${postViewPrimary}:${postId}:${key}`
 export const postView = (postId) => `${postViewPrimary}:${postId}`
 
+export const noticeViewPrimary = 'noticeView'
+export const noticeViewLimit = (noticeId, key) => `${noticeViewPrimary}:${noticeId}:${key}`
+export const noticeView = (noticeId) => `${postViewPrimary}:${noticeId}`
+
 export const postLikePrimary = 'postLike'
 export const postLike = (postId, user_id) => `${postLikePrimary}:${postId}:${user_id}`
 

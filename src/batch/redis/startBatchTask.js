@@ -1,7 +1,7 @@
 import cron from 'node-cron'
 import RedisClient from '../../config/redisConfig.js'
 import dbConn from '../../config/dbConn.js'
-import {postViewPrimary} from '../../core/common/redis.key.js'
+import {noticeViewPrimary, postViewPrimary} from '../../core/common/redis.key.js'
 import RedisUtil from '../../core/util/RedisUtil.js'
 import {savePostLike} from './likeBatch/savePostLike.js'
 import saveReplyLike from './likeBatch/saveReplyLike.js'
@@ -72,6 +72,40 @@ const startBatchTask = {
         const elapsedTime = (endTime - startTime) / 1000
 
         console.log(`⏳ Redis - 게시글 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
+      }
+
+
+    })
+  },
+
+  /**
+   * 공지사항 조회수 저장
+   */
+  noticeView: () => {
+    cron.schedule('0 * * * * *', async () => {
+      const startTime = Date.now()
+
+      const keys = await RedisUtil.getScanRedisKey(noticeViewPrimary, 2)
+
+      for (const key of keys) {
+        const noticeId = key.split(':')[1]
+        const noticeViewCount = await RedisClient.get(key)
+
+        if (noticeViewCount) {
+          const count = parseInt(noticeViewCount, 10)
+
+          await dbConn.query('UPDATE notice SET view = view + ? WHERE id = ?', [count, noticeId])
+        }
+
+        await RedisClient.del(key)
+      }
+
+
+      if (keys.length > 0) {
+        const endTime = Date.now()
+        const elapsedTime = (endTime - startTime) / 1000
+
+        console.log(`⏳ Redis - 공지사항 조회수 저장 소요 시간 : ${elapsedTime.toFixed(2)}/s`)
       }
 
 
