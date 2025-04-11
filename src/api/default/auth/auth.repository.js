@@ -23,7 +23,15 @@ const AuthRepository = {
   insertUser: `INSERT INTO user(username, password, email, nickname, name, bio, birth) VALUE (?, ?, ?, ?, ?, ?, ?)`,
   insertAuthProvider: `INSERT INTO user_auth_providers(user_id, provider, provider_uid) VALUE (?, ?, ?)`,
 
-  updateLastLogin: `UPDATE user SET last_login = NOW() WHERE id = ?`
+  updateLastLogin: `UPDATE user SET last_login = NOW() WHERE id = ?`,
+
+
+  /**
+   * 계정찾기
+   */
+  findEmail: `SELECT id, role, username FROM user WHERE email = ?`,
+  findPassword: `SELECT id, role FROM user WHERE email = ? AND username = ?`,
+  passwordChange: `UPDATE user SET password = ? WHERE id = ? AND email = ? AND username = ?`,
 }
 
 export default AuthRepository

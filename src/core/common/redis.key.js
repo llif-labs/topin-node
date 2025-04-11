@@ -1,10 +1,17 @@
 export const viewCoolDown = 3600
+export const emailCoolDown = 180 // 180초 = 3분
 
 export const cacheMainStats = 'main_stats'
 
 export const verifyEmailPrimary = 'verifyEmail'
 export const verifyEmail = (token) =>  `${verifyEmailPrimary}:${token}`
 export const verifyEmailSaveUser = (token) =>  `${verifyEmailPrimary}:${token}:user`
+
+export const findEmailPrimary = 'findEmail'
+export const findEmail = (email, code) => `${findEmailPrimary}:${email}:${code}`
+
+export const findPasswordPrimary = 'findPassword'
+export const findPassword = (email, code) => `${findPasswordPrimary}:${email}:${code}`
 
 export const postViewPrimary = 'postView'
 export const postViewLimit = (postId, key) => `${postViewPrimary}:${postId}:${key}`

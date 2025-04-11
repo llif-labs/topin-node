@@ -13,12 +13,12 @@ export const EMAIL_TYPE = {
     template: 'views/mail/admin-login.ejs',
   },
   FIND_ID: {
-    title: '안녕하세요 회원님. 토핀에서 발송한 아이디 찾기 메일 입니다.',
-    template: '',
+    title: '안녕하세요 회원님. 토핀에서 발송한 아이디 찾기 인증메일 입니다.',
+    template: 'views/mail/find-email.ejs',
   },
   FIND_PW: {
-    title: '안녕하세요 회원님. 토핀에서 발송한 비밀번호 찾기 메일 입니다.',
-    template: '',
+    title: '안녕하세요 회원님. 토핀에서 발송한 비밀번호 찾기 인증메일 입니다.',
+    template: 'views/mail/find-password.ejs',
   },
 }
 
@@ -31,6 +31,7 @@ const transporter = nodemailer.createTransport({
 })
 
 const EmailSender = (receiver, type) => {
+  const templatePath = path.resolve(__dirname, '../../../../', type.template)
   const mailOptions = {
     from: process.env.SMTP_EMAIL,
     to: receiver,
@@ -38,20 +39,20 @@ const EmailSender = (receiver, type) => {
     html: null,
   }
 
+
   return {
     verifyAdminLogin: async (name, code) => {
       try {
-        let html = ''
-
-        if (type.template) {
-          const templatePath = path.resolve(__dirname, '../../../../', type.template)
-          html = await ejs.renderFile(templatePath, {name: name, code: code})
-        }
-
-        mailOptions.html = html
-
-        console.log(mailOptions)
-
+        mailOptions.html = await ejs.renderFile(templatePath, {name: name, code: code})
+        await transporter.sendMail(mailOptions)
+      } catch (e) {
+        console.log(e)
+        throw new Error(STATUS.SEND_EMAIL_FAIL.message)
+      }
+    },
+    findAccount: async (code) => {
+      try {
+        mailOptions.html = await ejs.renderFile(templatePath, {code: code})
         await transporter.sendMail(mailOptions)
       } catch (e) {
         console.log(e)

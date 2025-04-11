@@ -8,7 +8,13 @@ import EmailSender, {EMAIL_TYPE} from '../../../core/module/sendEmail/EmailSende
 import StringUtil from '../../../core/util/stringUtil.js'
 import jwt from '../../../core/module/jwt/jwt.js'
 import RedisClient from '../../../config/redisConfig.js'
-import {verifyEmail, verifyEmailSaveUser} from '../../../core/common/redis.key.js'
+import {
+  emailCoolDown,
+  findEmail,
+  findPassword,
+  verifyEmail,
+  verifyEmailSaveUser,
+} from '../../../core/common/redis.key.js'
 
 const AuthService = {
   login: async (req, res) => {
@@ -106,6 +112,87 @@ const AuthService = {
       ])
 
       statusResponse(req, res, STATUS.REGISTER_SUCCESS.code, STATUS.REGISTER_SUCCESS.message, result)
+    } catch (e) {
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
+    }
+  },
+
+  findEmail: async (req, res) => {
+    try {
+      const {email} = req.body
+      const user = await dbConn.getOne(AuthRepository.findEmail, [email])
+      if (!user.id || user.role < 100) throw new Error('이메일을 찾을 수 없습니다.')
+
+      const code = StringUtil.genKey(8)
+      const findEmailKey = findEmail(email, code)
+
+      await Promise.all([
+        RedisClient.setex(findEmailKey, emailCoolDown, user.username),
+        EmailSender(email, EMAIL_TYPE.FIND_ID).findAccount(code),
+      ])
+
+      statusResponse(req, res, STATUS.SEND_EMAIL_SUCCESS.code, STATUS.SEND_EMAIL_SUCCESS.message)
+    } catch (e) {
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
+    }
+  },
+
+  findEmailSuccess: async (req, res) => {
+    try {
+      const {email, code} = req.body
+
+      const findEmailKey = findEmail(email, code)
+      const username = await RedisClient.get(findEmailKey)
+
+      if (!findEmailKey) {
+        throw new Error('인증코드가 잘못되었습니다')
+      }
+
+      await RedisClient.del(findEmailKey)
+
+      statusResponse(req, res, STATUS.GET_SUCCESS.code, STATUS.GET_SUCCESS.message, {
+        username: username,
+      })
+    } catch (e) {
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
+    }
+  },
+
+  findPassword: async (req, res) => {
+    try {
+      const {email, username} = req.body
+      const user = await dbConn.getOne(AuthRepository.findPassword, [email, username])
+      if (!user.id || user.role < 100) throw new Error('계정을 찾을 수 없습니다')
+
+      const code = StringUtil.genKey(8)
+      const findPassKey = findPassword(email, code)
+
+      await Promise.all([
+        RedisClient.setex(findPassKey, emailCoolDown, user.id),
+        EmailSender(email, EMAIL_TYPE.FIND_ID).findAccount(code),
+      ])
+
+      statusResponse(req, res, STATUS.SEND_EMAIL_SUCCESS.code, STATUS.SEND_EMAIL_SUCCESS.message)
+    } catch (e) {
+      statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
+    }
+  },
+
+  findPasswordSuccess: async (req, res) => {
+    try {
+      const {email, username, code, password} = req.body
+      const findPassKey = findPassword(email, code)
+      let userId = await RedisClient.get(findPassKey)
+      if (!userId) {
+        throw new Error('인증코드가 잘못되었습니다')
+      }
+
+      userId = parseInt(userId)
+      const hashPassword = await PassGenerate.createPasswordHash(password)
+
+      await dbConn.query(AuthRepository.passwordChange, [hashPassword, userId, email, username])
+
+      statusResponse(req, res, STATUS.SEND_EMAIL_SUCCESS.code, STATUS.SEND_EMAIL_SUCCESS.message)
     } catch (e) {
       statusResponse(req, res, STATUS.BAD_REQUEST.code, e.message, e)
     }
