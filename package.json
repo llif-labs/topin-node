@@ -6,7 +6,7 @@
   "scripts": {
     "start:dev": "pm2 kill && pm2 start ecosystem.config.cjs --env development --watch && pm2 logs",
     "start:prod": "pm2 kill && pm2 start ecosystem.config.cjs --env production",
-    "start:stg": "pm2 kill && pm2 start ecosystem.config.cjs --env stage"
+    "start:stg": "pm2 kill && pm2 start ecosystem.config.cjs --env staging"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

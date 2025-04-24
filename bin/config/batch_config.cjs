@@ -16,7 +16,7 @@ batchConfig = {
     DB_HOST: '127.0.0.1',
     DB_PORT: '3306',
     DB_USER: 'root',
-    DB_PASSWORD: 'Root123!!',
+    DB_PASSWORD: '0000',
     DB_DATABASE: 'topin',
     RDS_HOST: '127.0.0.1',
     RDS_PORT: '6379',
